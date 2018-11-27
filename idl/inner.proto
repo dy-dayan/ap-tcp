@@ -1,0 +1,24 @@
+syntax="proto3";
+package access;
+
+service Access {
+    rpc Push(PushReq) returns (PushRsp);
+}
+
+enum CODE {
+    OK = 0;
+    NO = 1;
+}
+
+message PushReq {
+    uint64 uid = 1; //uid
+    string service = 2;
+    string method = 3;
+    bytes  content = 4; //
+    uint64 seq = 5;
+}
+
+message PushRsp {
+    CODE code = 1;
+}
+

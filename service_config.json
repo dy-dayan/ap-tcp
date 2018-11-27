@@ -1,0 +1,19 @@
+{
+  "registry": {
+    "address": "127.0.0.1:8500"
+  },
+  "service": {
+    "name": "dayan-ap-tcp",
+    "listenAddr": "127.0.0.1:8500",
+    "brokeAddr": "127.0.0.1:8500",
+    "version": "v1.0.0",
+    "metadata": {
+      "id":"1"
+    }
+  },
+  "log": {
+    "path": "log",
+    "level": "debug",
+    "fileSize": 1024000
+  }
+}

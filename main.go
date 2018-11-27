@@ -1,0 +1,21 @@
+package main
+
+import (
+	"github.com/dy-dayan/ap-tcp/handler"
+	"github.com/dy-gopkg/kit"
+	"github.com/dy-dayan/ap-tcp/idl"
+)
+
+func main() {
+
+	kit.Init()
+
+	h := handler.NewHandler()
+
+	access.RegisterAccessHandler(kit.Server(), h)
+
+	go kit.Run()
+
+	//TODO: need a delay to start?
+	h.Start()
+}

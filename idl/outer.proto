@@ -1,0 +1,94 @@
+syntax="proto3";
+package access;
+
+message Device {
+    string guid = 1; // device guid
+}
+
+message User {
+    string email = 1;
+    string phoneNum = 2;
+    string password = 3;
+    string token = 4;
+}
+
+//------- 二级包 （begin)------
+message ReqHead {
+    Device dev  = 1; // device info
+    string ver  = 2; // app version
+    User   user = 3; // 账号信息
+}
+
+message ReqBody {
+    string service = 1; // 服务
+    string method = 2; // 方法
+    bytes content = 3; // 业务消息
+}
+//-------- 二级包 (end) ------
+
+
+//------ 一级包（begin）------
+message PkgReqHead {
+    uint64 seq = 1;
+    // encrypt
+    // compress
+}
+
+message PkgReqBody {
+    ReqHead head = 1;
+    repeated ReqBody bodys = 2;
+}
+
+//----- 一级包（end) ---------
+
+//-----请求包定义-----
+message PkgReq {
+    PkgReqHead head = 1;
+    PkgReqBody body = 2;
+}
+
+//---------------------------响应消息定义---------------
+
+//-----------二级包 begin (一级包体)-------
+message RspHead {
+    uint64 uid = 1; // uid
+    string token = 2; // token
+    uint32 code = 3; //状态码
+}
+
+message RspBody {
+    string service = 1; // 服务
+    string method = 2; // 方法
+    uint32 id = 3; // 服务id
+    bytes content = 4; // 业务消息
+    uint32 code = 5; // 状态码
+}
+
+//--------二级包 end -------------
+
+enum MsgType {
+    Call = 0;
+    Push = 1;
+}
+
+//--------- 一级包 begin -----
+message PkgRspHead {
+    uint64 seq = 1;
+    MsgType type = 2;
+    // encrypt
+    // compress
+}
+
+message PkgRspBody {
+    RspHead head = 1;
+    repeated RspBody bodys = 2;
+}
+
+//------- 一级包 end -------
+
+//响应包
+message PkgRsp {
+    PkgRspHead head = 1;
+    PkgRspBody body = 2;
+}
+
