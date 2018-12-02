@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/dy-dayan/ap-tcp/idl"
 	"github.com/dy-dayan/ap-tcp/server"
 	"github.com/dy-gopkg/kit"
@@ -10,6 +11,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/micro/go-micro/client"
 	"github.com/sirupsen/logrus"
+	"os"
 )
 
 type Handler struct {
@@ -18,11 +20,9 @@ type Handler struct {
 
 func NewHandler() *Handler {
 	h := &Handler{}
-
-	//id := strconv.ParseUint(kit.ServiceMetadata()["id"], )
-
+	logrus.Debug("external listen addr is :",kit.ServiceExternAddr())
 	h.tcpSrv = server.NewTcpServer(
-		server.Addr(kit.ServiceListenAddr()),
+		server.Addr(kit.ServiceExternAddr()),
 		server.SrvId(kit.ServiceMetadata("id", "0")),
 		server.HandleRequest(h.HandleRequest),
 	)
@@ -68,16 +68,17 @@ func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body [
 	req := &access.PkgReq{}
 	err := proto.Unmarshal(body, req)
 	if err != nil {
+		fmt.Println("failed.",body)
 		logrus.Errorf("PkgReq Unmarshal failed(err:%v)", err)
+		os.Exit(-1)
 		return err
 	}
-
+	fmt.Println("unmarshal success:",body)
 	// TODO: need close session?
 	if req.Head == nil || req.Body == nil {
 		logrus.Errorf("invalid request")
 		return errors.New("invalid request")
 	}
-
 	rsp := &access.PkgRsp{
 		Head: &access.PkgRspHead{Seq: req.Head.Seq},
 		Body: &access.PkgRspBody{
@@ -88,7 +89,6 @@ func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body [
 
 	if ses.Authed {
 		// session has authenticated
-
 		for _, subReq := range req.Body.Bodys {
 			out, err := h.RawCallMicroService(ctx, subReq.Service, subReq.Method, subReq.Content)
 			rspBody := &access.RspBody{
@@ -107,7 +107,6 @@ func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body [
 	} else {
 		if req.Body.Head.Account != nil {
 			// TODO: authenticate account
-
 		} else {
 			rsp.Body.Head.Code = 1 // failed
 			return nil

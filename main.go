@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/dy-dayan/ap-tcp/handler"
 	"github.com/dy-gopkg/kit"
 	"github.com/dy-dayan/ap-tcp/idl"
@@ -18,4 +19,6 @@ func main() {
 
 	//TODO: need a delay to start?
 	h.Start()
+
+	fmt.Println("aaa")
 }

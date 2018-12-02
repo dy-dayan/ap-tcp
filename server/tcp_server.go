@@ -138,6 +138,7 @@ func (s *TcpServer) acceptCon(con net.Conn) {
 	id := atomic.AddUint32(&s.sockCnt, 1)
 	tmp := s.baseValue + uint64(id)
 	var ses = NewSession(s, tmp, con)
+	log.Debugf("accept new con from",con.RemoteAddr().String())
 	s.sessionHub.Add(ses)
 	ses.StartReadAndHandle()
 }

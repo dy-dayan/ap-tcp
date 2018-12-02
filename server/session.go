@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -49,6 +50,7 @@ func (ss *Session) Close() error {
 	return ss.socket.Close()
 }
 
+
 func (ss *Session) StartReadAndHandle() {
 	ctx := context.Background()
 	msgBuf := bytes.NewBuffer(make([]byte, 0, MSG_BUFFER_SIZE))
@@ -70,7 +72,6 @@ func (ss *Session) StartReadAndHandle() {
 			fmt.Printf("Read error: %s\n", err)
 			return
 		}
-		fmt.Println(dataBuf[:n])
 		// 数据添加到消息缓冲
 		n, err = msgBuf.Write(dataBuf[:n])
 		if err != nil {
@@ -88,7 +89,8 @@ func (ss *Session) StartReadAndHandle() {
 					ss.srv.sessionHub.Delete(ss.socket.GetFid())
 					return
 				}
-				binary.Read(msgBuf, binary.LittleEndian, &uLen)
+				lengthByte := msgBuf.Next(4)
+				uLen = binary.BigEndian.Uint32(lengthByte)
 				length = int(uLen)
 				// 检查超长消息
 				if length > MSG_BUFFER_SIZE {
@@ -99,8 +101,9 @@ func (ss *Session) StartReadAndHandle() {
 			}
 			// 消息体
 			if length > 0 && msgBuf.Len() >= length {
+				msg := msgBuf.Next(length)
 				length = 0
-				go ss.HandleMsg(ctx, msgBuf.Next(length))
+				go ss.HandleMsg(ctx, msg)
 			} else {
 				break
 			}
@@ -115,15 +118,13 @@ func (ss *Session) HandleMsg(ctx context.Context, msg []byte) {
 
 func (ss *Session) WriteMsg(msg []byte) error {
 	length := len(msg)
-	buf := bytes.NewBuffer(make([]byte, 0, 4))
-	err := binary.Write(buf, binary.LittleEndian, length)
-	if err != nil {
-		return err
-	}
-	var totalMsg []byte
-	totalMsg = append(totalMsg, []byte("DY")...)
-	totalMsg = append(totalMsg, buf.Bytes()...)
-	totalMsg = append(totalMsg, msg...)
+	msgLen := make([]byte, 0, 4)
+	binary.BigEndian.PutUint32(msg,uint32(length))
+	writeBuff := bufio.NewWriter(ss.socket)
+	writeBuff.Write([]byte("DY"))
+	writeBuff.Write(msgLen)
+	writeBuff.Write(msg)
+	writeBuff.Flush()
 	return nil
 }
 
