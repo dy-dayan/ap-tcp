@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"sync"
-	"time"
 )
 
 const (
@@ -34,9 +33,18 @@ func NewSession(srv *TcpServer, id uint64, con net.Conn) *Session {
 		Authed: false,
 		srv:    srv,
 	}
-	ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)))
-	ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second)))
-	ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second)))
+	/*
+	if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
+		return nil
+	}
+	if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+		return nil
+	}
+	if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+		return nil
+	}
+	*/
+
 	ss.socket.SetFid(id)
 	return ss
 }

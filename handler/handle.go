@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
+	"github.com/dy-dayan/ap-tcp/helpFunc"
 	"github.com/dy-dayan/ap-tcp/idl"
 	"github.com/dy-dayan/ap-tcp/server"
 	"github.com/dy-gopkg/kit"
@@ -66,14 +66,15 @@ func (h *Handler) Push(ctx context.Context, req *access.PushReq, rsp *access.Pus
 
 func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body []byte) error {
 	req := &access.PkgReq{}
+	logrus.Debugf("gid:%d : %v\n",helpFunc.GetGID(),body)
 	err := proto.Unmarshal(body, req)
 	if err != nil {
-		fmt.Println("failed.",body)
-		logrus.Errorf("PkgReq Unmarshal failed(err:%v)", err)
+		logrus.Errorf("gid:[%d] PkgReq Unmarshal failed(err:%v), %v",helpFunc.GetGID(), err,body)
 		os.Exit(-1)
 		return err
 	}
-	fmt.Println("unmarshal success:",body)
+
+	logrus.Debugf("success: gid:%d : %v\n",helpFunc.GetGID(),body)
 	// TODO: need close session?
 	if req.Head == nil || req.Body == nil {
 		logrus.Errorf("invalid request")
