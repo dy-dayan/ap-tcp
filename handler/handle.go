@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
-	"github.com/dy-dayan/ap-tcp/helpFunc"
+	"github.com/dy-dayan/ap-tcp/help"
 	"github.com/dy-dayan/ap-tcp/idl"
 	"github.com/dy-dayan/ap-tcp/server"
 	"github.com/dy-gopkg/kit"

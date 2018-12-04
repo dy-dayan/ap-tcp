@@ -1,7 +1,7 @@
 module github.com/dy-dayan/ap-tcp
 
 require (
-	github.com/dy-gopkg/kit v0.0.0-20181127033438-be8d3eb36c53
+	github.com/dy-gopkg/kit v0.0.0-20181202160727-4751319efe80
 	github.com/dy-gopkg/util v0.0.0-20181127034758-668e84108b18
 	github.com/golang/protobuf v1.2.0
 	github.com/micro/go-micro v0.14.1

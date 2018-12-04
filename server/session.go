@@ -5,11 +5,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/dy-dayan/ap-tcp/server/socket"
-	"golang.org/x/net/context"
 	"io"
 	"net"
 	"sync"
+
+	"github.com/dy-dayan/ap-tcp/server/socket"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -33,17 +34,17 @@ func NewSession(srv *TcpServer, id uint64, con net.Conn) *Session {
 		Authed: false,
 		srv:    srv,
 	}
-	/*
-	if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
-		return nil
-	}
-	if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
-		return nil
-	}
-	if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
-		return nil
-	}
-	*/
+	
+		if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
+			return nil
+		}
+		if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+			return nil
+		}
+		if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+			return nil
+		}
+	
 
 	ss.socket.SetFid(id)
 	return ss
@@ -57,7 +58,6 @@ func (ss *Session) Close() error {
 	ss.srv.sessionHub.Delete(ss.Id())
 	return ss.socket.Close()
 }
-
 
 func (ss *Session) StartReadAndHandle() {
 	ctx := context.Background()
@@ -111,7 +111,7 @@ func (ss *Session) StartReadAndHandle() {
 			if length > 0 && msgBuf.Len() >= length {
 				msg := msgBuf.Next(length)
 				length = 0
-				go ss.HandleMsg(ctx, msg)
+				ss.HandleMsg(ctx, msg)
 			} else {
 				break
 			}
@@ -127,7 +127,7 @@ func (ss *Session) HandleMsg(ctx context.Context, msg []byte) {
 func (ss *Session) WriteMsg(msg []byte) error {
 	length := len(msg)
 	msgLen := make([]byte, 0, 4)
-	binary.BigEndian.PutUint32(msg,uint32(length))
+	binary.BigEndian.PutUint32(msg, uint32(length))
 	writeBuff := bufio.NewWriter(ss.socket)
 	writeBuff.Write([]byte("DY"))
 	writeBuff.Write(msgLen)
