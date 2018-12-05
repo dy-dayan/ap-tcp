@@ -5,12 +5,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/dy-dayan/ap-tcp/server/socket"
+	"golang.org/x/net/context"
 	"io"
 	"net"
 	"sync"
-
-	"github.com/dy-dayan/ap-tcp/server/socket"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -34,16 +33,17 @@ func NewSession(srv *TcpServer, id uint64, con net.Conn) *Session {
 		Authed: false,
 		srv:    srv,
 	}
-	
-		if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
-			return nil
-		}
-		if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
-			return nil
-		}
-		if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
-			return nil
-		}
+
+	/*
+	if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
+		return nil
+	}
+	if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+		return nil
+	}
+	if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+		return nil
+	}*/
 	
 
 	ss.socket.SetFid(id)
@@ -125,12 +125,12 @@ func (ss *Session) HandleMsg(ctx context.Context, msg []byte) {
 }
 
 func (ss *Session) WriteMsg(msg []byte) error {
-	length := len(msg)
-	msgLen := make([]byte, 0, 4)
-	binary.BigEndian.PutUint32(msg, uint32(length))
 	writeBuff := bufio.NewWriter(ss.socket)
+	msgLenByte := make([]byte,4)
+	msgLen := len(msg)
+	binary.BigEndian.PutUint32(msgLenByte, uint32(msgLen))
 	writeBuff.Write([]byte("DY"))
-	writeBuff.Write(msgLen)
+	writeBuff.Write(msgLenByte)
 	writeBuff.Write(msg)
 	writeBuff.Flush()
 	return nil
