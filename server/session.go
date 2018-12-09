@@ -111,7 +111,7 @@ func (ss *Session) StartReadAndHandle() {
 				length = 0
 				ss.HandleMsg(ctx, msg)
 			} else {
-				break
+				goto FAILED
 			}
 		}
 	}
