@@ -54,7 +54,6 @@ func (ss *Session) Id() uint64 {
 }
 
 func (ss *Session) Close() error {
-	ss.srv.sessionHub.Delete(ss.Id())
 	return ss.socket.Close()
 }
 
@@ -74,16 +73,18 @@ func (ss *Session) StartReadAndHandle() {
 		n, err := ss.socket.Read(dataBuf)
 		if err == io.EOF {
 			log.Errorf("Client exit: %s", ss.socket.RemoteAddr())
+			goto FAILED
 		}
+
 		if err != nil {
 			log.Errorf("Read error: %s", err)
-			return
+			goto FAILED
 		}
 		// 数据添加到消息缓冲
 		n, err = msgBuf.Write(dataBuf[:n])
 		if err != nil {
 			log.Errorf("Buffer write error: %s", err)
-			return
+			goto FAILED
 		}
 
 		// 消息分割循环
@@ -93,8 +94,7 @@ func (ss *Session) StartReadAndHandle() {
 				msgFlag = string(msgBuf.Next(2))
 				if msgFlag != "DY" {
 					log.Error("invalid message")
-					ss.srv.sessionHub.Delete(ss.socket.GetFid())
-					return
+					goto FAILED
 				}
 				lengthByte := msgBuf.Next(4)
 				uLen = binary.BigEndian.Uint32(lengthByte)
@@ -102,8 +102,7 @@ func (ss *Session) StartReadAndHandle() {
 				// 检查超长消息
 				if length > MSG_BUFFER_SIZE {
 					log.Errorf("Message too length: %d", length)
-					ss.srv.sessionHub.Delete(ss.socket.GetFid())
-					return
+					goto FAILED
 				}
 			}
 			// 消息体
@@ -116,6 +115,10 @@ func (ss *Session) StartReadAndHandle() {
 			}
 		}
 	}
+
+FAILED:
+	ss.srv.sessionHub.Delete(ss.socket.GetFid())
+	return
 
 }
 

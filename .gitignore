@@ -1,5 +1,6 @@
 .idea
 *.log
 dayan-ap-tcp*
+ap-tcp*
 vendor
 go.sum
