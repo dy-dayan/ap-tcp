@@ -15,6 +15,6 @@
   "log": {
     "path": "log",
     "level": "debug",
-    "fileSize": 1024000
+    "fileSize": 10
   }
 }

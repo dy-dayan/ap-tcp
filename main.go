@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/dy-dayan/ap-tcp/handler"
-	"github.com/dy-gopkg/kit"
 	"github.com/dy-dayan/ap-tcp/idl"
+	"github.com/dy-gopkg/kit"
 )
 
 func main() {

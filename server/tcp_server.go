@@ -99,6 +99,7 @@ func (s *TcpServer) Run() error {
 	s.listener, err = net.Listen("tcp", s.opt.addr)
 	if err != nil {
 		log.Errorf("listen failed:%v", err)
+		return err
 	}
 	var (
 		tempDelay time.Duration // how long to sleep on accept failure
@@ -138,10 +139,10 @@ func (s *TcpServer) acceptCon(con net.Conn) {
 	id := atomic.AddUint32(&s.sockCnt, 1)
 	tmp := s.baseValue + uint64(id)
 	var ses = NewSession(s, tmp, con)
-	if ses == nil{
+	if ses == nil {
 		log.Debug("create session failed")
 	}
-	log.Debugf("accept new con from",con.RemoteAddr().String())
+	log.Debugf("accept new con from", con.RemoteAddr().String())
 	s.sessionHub.Add(ses)
 	ses.StartReadAndHandle()
 }

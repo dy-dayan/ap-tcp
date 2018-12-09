@@ -10,17 +10,17 @@ import (
 	"github.com/dy-gopkg/util/micro-codec/byterpc"
 	"github.com/golang/protobuf/proto"
 	"github.com/micro/go-micro/client"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 type Handler struct {
-	tcpSrv   *server.TcpServer
+	tcpSrv *server.TcpServer
 }
 
 func NewHandler() *Handler {
 	h := &Handler{}
-	logrus.Debug("external listen addr is :",kit.ServiceExternAddr())
+	log.Debug("external listen addr is :", kit.ServiceExternAddr())
 	h.tcpSrv = server.NewTcpServer(
 		server.Addr(kit.ServiceExternAddr()),
 		server.SrvId(kit.ServiceMetadata("id", "0")),
@@ -31,7 +31,7 @@ func NewHandler() *Handler {
 
 func (h *Handler) Start() {
 	if err := h.tcpSrv.Run(); err != nil {
-		logrus.Fatalf("run tcp server failed(err:%v)", err)
+		log.Fatalf("run tcp server failed(err:%v)", err)
 	}
 }
 
@@ -66,18 +66,16 @@ func (h *Handler) Push(ctx context.Context, req *access.PushReq, rsp *access.Pus
 
 func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body []byte) error {
 	req := &access.PkgReq{}
-	logrus.Debugf("gid:%d : %v\n",helpFunc.GetGID(),body)
 	err := proto.Unmarshal(body, req)
 	if err != nil {
-		logrus.Errorf("gid:[%d] PkgReq Unmarshal failed(err:%v), %v",helpFunc.GetGID(), err,body)
+		log.Errorf("gid:[%d] PkgReq Unmarshal failed(err:%v), %v", helpFunc.GetGID(), err, body)
 		os.Exit(-1)
 		return err
 	}
 
-	logrus.Debugf("success: gid:%d : %v\n",helpFunc.GetGID(),body)
 	// TODO: need close session?
 	if req.Head == nil || req.Body == nil {
-		logrus.Errorf("invalid request")
+		log.Errorf("invalid request")
 		return errors.New("invalid request")
 	}
 	rsp := &access.PkgRsp{
@@ -119,7 +117,7 @@ func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body [
 func (h *Handler) Response(ctx context.Context, ses *server.Session, msg *access.PkgRsp) error {
 	byt, err := proto.Marshal(msg)
 	if err != nil {
-		logrus.Errorf("PkgRsp Marshal failed(err:%v)", err)
+		log.Errorf("PkgRsp Marshal failed(err:%v)", err)
 		return err
 	}
 
@@ -129,7 +127,7 @@ func (h *Handler) Response(ctx context.Context, ses *server.Session, msg *access
 func (h *Handler) PushMsg(uid uint64, msg *access.PkgRsp) error {
 	byt, err := proto.Marshal(msg)
 	if err != nil {
-		logrus.Errorf("PkgRsp Marshal failed(err:%v)", err)
+		log.Errorf("PkgRsp Marshal failed(err:%v)", err)
 		return err
 	}
 

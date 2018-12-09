@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"github.com/dy-dayan/ap-tcp/server/socket"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"io"
 	"net"
@@ -35,16 +35,15 @@ func NewSession(srv *TcpServer, id uint64, con net.Conn) *Session {
 	}
 
 	/*
-	if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
-		return nil
-	}
-	if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
-		return nil
-	}
-	if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
-		return nil
-	}*/
-	
+		if err := ss.socket.SetDeadline(time.Now().Add(time.Duration(10 * time.Second)));err != nil{
+			return nil
+		}
+		if err := ss.socket.SetReadDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+			return nil
+		}
+		if err := ss.socket.SetWriteDeadline(time.Now().Add(time.Duration(6 * time.Second))); err != nil{
+			return nil
+		}*/
 
 	ss.socket.SetFid(id)
 	return ss
@@ -74,16 +73,16 @@ func (ss *Session) StartReadAndHandle() {
 		// 读取数据
 		n, err := ss.socket.Read(dataBuf)
 		if err == io.EOF {
-			fmt.Printf("Client exit: %s\n", ss.socket.RemoteAddr())
+			log.Errorf("Client exit: %s", ss.socket.RemoteAddr())
 		}
 		if err != nil {
-			fmt.Printf("Read error: %s\n", err)
+			log.Errorf("Read error: %s", err)
 			return
 		}
 		// 数据添加到消息缓冲
 		n, err = msgBuf.Write(dataBuf[:n])
 		if err != nil {
-			fmt.Printf("Buffer write error: %s\n", err)
+			log.Errorf("Buffer write error: %s", err)
 			return
 		}
 
@@ -93,7 +92,7 @@ func (ss *Session) StartReadAndHandle() {
 			if length == 0 && msgBuf.Len() >= 6 {
 				msgFlag = string(msgBuf.Next(2))
 				if msgFlag != "DY" {
-					fmt.Printf("invalid message")
+					log.Error("invalid message")
 					ss.srv.sessionHub.Delete(ss.socket.GetFid())
 					return
 				}
@@ -102,7 +101,7 @@ func (ss *Session) StartReadAndHandle() {
 				length = int(uLen)
 				// 检查超长消息
 				if length > MSG_BUFFER_SIZE {
-					fmt.Printf("Message too length: %d\n", length)
+					log.Errorf("Message too length: %d", length)
 					ss.srv.sessionHub.Delete(ss.socket.GetFid())
 					return
 				}
@@ -126,7 +125,7 @@ func (ss *Session) HandleMsg(ctx context.Context, msg []byte) {
 
 func (ss *Session) WriteMsg(msg []byte) error {
 	writeBuff := bufio.NewWriter(ss.socket)
-	msgLenByte := make([]byte,4)
+	msgLenByte := make([]byte, 4)
 	msgLen := len(msg)
 	binary.BigEndian.PutUint32(msgLenByte, uint32(msgLen))
 	writeBuff.Write([]byte("DY"))
