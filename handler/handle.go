@@ -7,9 +7,7 @@ import (
 	"github.com/dy-dayan/ap-tcp/idl"
 	"github.com/dy-dayan/ap-tcp/server"
 	"github.com/dy-gopkg/kit"
-	"github.com/dy-gopkg/util/micro-codec/byterpc"
 	"github.com/golang/protobuf/proto"
-	"github.com/micro/go-micro/client"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
@@ -86,14 +84,26 @@ func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body [
 	}
 	defer h.Response(ctx, ses, rsp)
 
+	c := kit.Client()
+
 	if ses.Authed {
 		// session has authenticated
 		for _, subReq := range req.Body.Bodys {
-			out, err := h.RawCallMicroService(ctx, subReq.Service, subReq.Method, subReq.Content)
+			//out, err := h.RawCallMicroService(ctx, subReq.Service, subReq.Method, subReq.Content)
+			reqTmp := &access.Message{}
+			rspTmp := &access.Message{}
+			if len(subReq.Content) > 0 {
+				reqTmp = access.NewMessage(subReq.Content)
+			}
+			request := c.NewRequest(subReq.Service, subReq.Method, reqTmp)
+			if err = c.Call(ctx, request, rspTmp); err != nil {
+				continue
+			}
+			rspByte, _ := rspTmp.Marshal()
 			rspBody := &access.RspBody{
 				Service: subReq.Service,
 				Method:  subReq.Method,
-				Content: out,
+				Content: rspByte,
 				Code:    0,
 			}
 			if err != nil {
@@ -134,14 +144,14 @@ func (h *Handler) PushMsg(uid uint64, msg *access.PkgRsp) error {
 	return h.tcpSrv.SendMsgByUid(uid, byt)
 }
 
-func (h *Handler) RawCallMicroService(ctx context.Context, service, method string, in []byte, opts ...client.CallOption) (out []byte, err error) {
-	c := client.NewClient(client.Codec("byte-rpc", byterpc.NewCodec))
-	req := c.NewRequest(service, method, in, client.WithContentType("byte-rpc"))
-	out = []byte{}
-
-	err = c.Call(ctx, req, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
+//func (h *Handler) RawCallMicroService(ctx context.Context, service, method string, in []byte, opts ...client.CallOption) (out []byte, err error) {
+//	c := client.NewClient(client.Codec("byte-rpc", byterpc.NewCodec))
+//	req := c.NewRequest(service, method, in, client.WithContentType("byte-rpc"))
+//	out = []byte{}
+//
+//	err = c.Call(ctx, req, &out, opts...)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return out, nil
+//}
