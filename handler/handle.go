@@ -97,6 +97,7 @@ func (h *Handler) HandleRequest(ctx context.Context, ses *server.Session, body [
 			}
 			request := c.NewRequest(subReq.Service, subReq.Method, reqTmp)
 			if err = c.Call(ctx, request, rspTmp); err != nil {
+				log.Errorf("call %s:%s occur error %v", subReq.Service, subReq.Method, err)
 				continue
 			}
 			rspByte, _ := rspTmp.Marshal()
